@@ -1,26 +1,29 @@
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.evaluation.RegressionMetrics;
+import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.mllib.tree.RandomForest;
 import org.apache.spark.mllib.tree.model.RandomForestModel;
 import org.apache.spark.rdd.RDD;
 import scala.Tuple2;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by alexsisu on 08/03/16.
  */
-public class  BostonDataRandomForestRegressorJava {
+public class Kin8RFRegressorJava {
     public static JavaSparkContext sc;
 
     public static void main(String[] argv) {
         SparkConf sparkConf = new SparkConf();
-        sparkConf.setAppName("RandomForestRegressorBostonData");
+        sparkConf.setAppName("RandomForestRegressorKin8Data");
         sparkConf.setMaster("local");
 
         sc = new JavaSparkContext(sparkConf);
@@ -33,10 +36,10 @@ public class  BostonDataRandomForestRegressorJava {
 
 
         Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
-        int numTrees = 100; // Use more in practice.
+        int numTrees = 30; // Use more in practice.
         String featureSubsetStrategy = "auto"; // Let the algorithm choose.
         String impurity = "variance";
-        int maxDepth = 4;
+        int maxDepth = 30;
         int maxBins = 32;
         int seed = 12345;
 
@@ -60,20 +63,38 @@ public class  BostonDataRandomForestRegressorJava {
     }
 
     public static JavaRDD<LabeledPoint> prepareData() {
-        JavaRDD<String> allBostonContent = sc.textFile("resources/boston_training.csv");
+        JavaRDD<String> allContent = sc.textFile("resources/kin8nm.csv");
 
-        String header = allBostonContent.first();
+        String header = allContent.first();
 
-        JavaRDD<String> all = allBostonContent.filter(s -> !s.equals(header));
+        JavaRDD<String> all = allContent.filter(s -> !s.equals(header));
 
-        JavaRDD<BostonEntryJava> allDataset = all.map(x -> new BostonEntryJava(x));
+        JavaRDD<KinEntry> allDataset = all.map(x -> new KinEntry(x));
         JavaRDD<LabeledPoint> trainingDataInitial = allDataset.map(x -> x.toLabeledPoint());
-
-//        StandardScaler scaler = new StandardScaler().setWithMean(true).setWithStd(true).fit(trainingDataInitial);
-
         JavaRDD<LabeledPoint> trainingData = trainingDataInitial.map(x -> new Tuple2<>(x.label(), x.features())).map(x -> new LabeledPoint(x._1(), x._2()));
 
         trainingData.cache();
         return trainingData;
+    }
+
+    public static class KinEntry {
+        private final String line;
+
+        public KinEntry(String line) {
+            this.line = line;
+        }
+
+        public LabeledPoint toLabeledPoint() {
+            String[] tokens = this.line.split(",");
+            ArrayList<Double> vals = new ArrayList<Double>();
+            for (int i = 0; i < tokens.length-1; i++) {
+                vals.add(Double.parseDouble(tokens[i].trim()));
+            }
+            Double[] arrType = new Double[0];
+            Double[] valArr = vals.toArray(arrType);
+            double[] valArrPrimitives = ArrayUtils.toPrimitive(valArr);
+            Double label= Double.parseDouble(tokens[tokens.length-1].trim());
+            return new LabeledPoint(label.intValue(), Vectors.dense(valArrPrimitives));
+        }
     }
 }

@@ -60,7 +60,7 @@ object IrisDTClassification extends App {
 
 
 
-  /*
+
   val metrics = new MulticlassMetrics(predictionAndLabels)
 
   println("Confusion matrix:")
@@ -80,25 +80,4 @@ object IrisDTClassification extends App {
   labels.foreach { l =>
     println(s"Precision($l) = " + metrics.precision(l))
   }
-
-  // Recall by label
-  labels.foreach { l =>
-    println(s"Recall($l) = " + metrics.recall(l))
-  }
-
-  // False positive rate by label
-  labels.foreach { l =>
-    println(s"FPR($l) = " + metrics.falsePositiveRate(l))
-  }
-
-  // F-measure by label
-  labels.foreach { l =>
-    println(s"F1-Score($l) = " + metrics.fMeasure(l))
-  }
-
-  // Weighted stats
-  println(s"Weighted precision: ${metrics.weightedPrecision}")
-  println(s"Weighted recall: ${metrics.weightedRecall}")
-  println(s"Weighted F1 score: ${metrics.weightedFMeasure}")
-  println(s"Weighted false positive rate: ${metrics.weightedFalsePositiveRate}") */
 }
